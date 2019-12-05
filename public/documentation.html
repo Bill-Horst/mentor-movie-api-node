@@ -40,41 +40,8 @@
             </td>
         </tr>
         <tr>
-            <td>Get a movie's genre</td>
-            <td>/genre/:genre</td>
-            <td>GET</td>
-            <td>-none-</td>
-            <td>
-                <pre>
-{
-    genre: "horror"
-}
-                  </pre>
-            </td>
-        </tr>
-        <tr>
-            <td>Get full list of directors in database</td>
-            <td>/directors</td>
-            <td>GET</td>
-            <td>-none-</td>
-            <td>
-                <pre>
-[
-    {
-        director: 'Movie Director 1',
-        birthday: "09/09/1982"
-    },
-    {
-        director: 'Movie Director 2',
-        birthday: "09/09/1982"
-    }
-]
-                      </pre>
-            </td>
-        </tr>
-        <tr>
-            <td>Get full list of all movies in database</td>
-            <td>/movies</td>
+            <td>Get info about a single movie</td>
+            <td>/movies/:title</td>
             <td>GET</td>
             <td>-none-</td>
             <td>
@@ -84,6 +51,20 @@
     director: 'Movie Director'
 }
                           </pre>
+            </td>
+        </tr>
+        <tr>
+            <td>Get a movie's genre</td>
+            <td>/genre/:genre</td>
+            <td>GET</td>
+            <td>-none-</td>
+            <td>
+                <pre>
+{
+    "Name": "Comedy",
+    "Description": "Comedy film, also known as hee-haw jamble."
+}
+                  </pre>
             </td>
         </tr>
         <tr>
@@ -109,91 +90,101 @@
             <td>
                 <pre>
 {
-    username: "user123",
-    password: "password1",
-    email: "user@user.com",
-    birth_date: "09/09/1982"
+    "Username": "User123",
+    "Password": "password1",
+    "Email": "user@wmail.com",
+    "Birthdate": "09/09/1982"
 }
                 </pre>
             </td>
             <td>
                 <pre>
 {
-    username: "user123",
-    password: "password1",
-    email: "user@user.com",
-    birth_date: "09/09/1982"
+    "FavoriteMovies": [],
+    "_id": "5de899514984d693e6276eb1",
+    "Username": "User123",
+    "Password": "password1",
+    "Email": "user@wmail.com",
+    "Birthdate": "1982-09-09T06:00:00.000Z",
+    "__v": 0
 }
                 </pre>
             </td>
         </tr>
         <tr>
             <td>Update a user's info</td>
-            <td>/users/:id</td>
+            <td>/users/:username</td>
             <td>PUT</td>
             <td>
                 <pre>
 {
-    username: "user123",
-    password: "password1",
-    email: "user@user.com",
-    birth_date: "09/09/1982"
+    "Username": "User123",
+    "Password": "password1Changed!!",
+    "Email": "user@wmail.com",
+    "Birthdate": "09/09/1982"
 }
                     </pre>
             </td>
             <td>
                 <pre>
 {
-    username: "user123",
-    password: "password1",
-    email: "user@user.com",
-    birth_date: "09/09/1982"
+    "FavoriteMovies": [],
+    "_id": "5de899514984d693e6276eb1",
+    "Username": "User123",
+    "Password": "password1Changed!!",
+    "Email": "user@wmail.com",
+    "Birthdate": "1982-09-09T06:00:00.000Z",
+    "__v": 0
 }
                     </pre>
             </td>
         </tr>
         <tr>
             <td>Add a movie to a user's favorites list</td>
-            <td>/users/:id/favorite/:movie_id</td>
+            <td>/users/:username/movies/:movieId</td>
             <td>POST</td>
             <td>-none-</td>
             <td>
                 <pre>
 {
-    username: "Billy Goat",
-    email: "goat@user.com",
-    favoriteMovies: ["Movie 1", "Movie 2", "Movie 4"]
+    "FavoriteMovies": [addedMovie],
+    "_id": "5de899514984d693e6276eb1",
+    "Username": "User123",
+    "Password": "password1Changed!!",
+    "Email": "user@wmail.com",
+    "Birthdate": "1982-09-09T06:00:00.000Z",
+    "__v": 0
 }
                 </pre>
             </td>
         </tr>
         <tr>
             <td>Remove a movie from a user's favorites list</td>
-            <td>/users/:id/favorite/:movie_id</td>
+            <td>/users/:username/movies/:movieId</td>
             <td>DELETE</td>
             <td>-none-</td>
             <td>
                 <pre>
 {
-    username: "BillyGoat",
-    email: "goat@user.com",
-    favoriteMovies: ["Movie 1", "Movie 2"]
+    "FavoriteMovies": [],
+    "_id": "5de899514984d693e6276eb1",
+    "Username": "User123",
+    "Password": "password1Changed!!",
+    "Email": "user@wmail.com",
+    "Birthdate": "1982-09-09T06:00:00.000Z",
+    "__v": 0
 }
                 </pre>
             </td>
         </tr>
         <tr>
             <td>Deregister a user</td>
-            <td>/users/:id/deregister</td>
-            <td>PUT</td>
+            <td>/users/:username</td>
+            <td>DELETE</td>
             <td>-none-</td>
             <td>
                 <pre>
-{
-    username: "BillyGoat",
-    email: "goat@user.com",
-    active: false
-}
+"User123 was deleted"
                 </pre>
             </td>
         </tr>
