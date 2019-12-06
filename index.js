@@ -1,17 +1,20 @@
 const express = require('express');
+const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Models = require('./models.js');
+const passport = require('passport');
+require('./passport');
 
 const Movies = Models.Movie;
 const Users = Models.User;
 
-mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true });
-
-const app = express();
 app.use(morgan('common'));
 app.use(bodyParser.json());
+var auth = require('./auth')(app);
+
+mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true });
 
 app.use(express.static('public')); // serve files located in 'public' folder
 
@@ -19,7 +22,7 @@ app.use(express.static('public')); // serve files located in 'public' folder
 app.get('/', function (req, res) {
     res.send('Welcome to the Movie API!')
 });
-app.get('/movies', function (req, res) {
+app.get('/movies', passport.authenticate('jwt', {session: false}), function (req, res) {
     Movies.find()
         .then(movies => res.json(movies))
         .catch(function (error) {
@@ -27,7 +30,7 @@ app.get('/movies', function (req, res) {
             res.status(500).send('Error: ' + error);
         });;
 });
-app.get('/movies/:title', function (req, res) {
+app.get('/movies/:title', passport.authenticate('jwt', {session: false}), function (req, res) {
     Movies.findOne({ Title: req.params.title })
         .then(movie => res.json(movie))
         .catch(function (error) {
@@ -35,7 +38,7 @@ app.get('/movies/:title', function (req, res) {
             res.status(500).send('Error: ' + error);
         });;
 });
-app.get('/genre/:genre', function (req, res) {
+app.get('/genre/:genre', passport.authenticate('jwt', {session: false}), function (req, res) {
     Movies.findOne({ 'Genre.Name': req.params.genre })
         .then(movie => res.json(movie.Genre))
         .catch(function (error) {
@@ -43,7 +46,7 @@ app.get('/genre/:genre', function (req, res) {
             res.status(500).send('Error: ' + error);
         });
 });
-app.get('/directors/:name', function (req, res) {
+app.get('/directors/:name', passport.authenticate('jwt', {session: false}), function (req, res) {
     Movies.findOne({ 'Director.Name': req.params.name })
         .then(movie => res.json(movie.Director))
         .catch(function (error) {
@@ -77,7 +80,7 @@ app.post('/users', function (req, res) { // this is for "allowing users to regis
             res.status(500).send('Error: ' + error);
         });
 });
-app.post('/users/:username/movies/:movieID', function (req, res) {
+app.post('/users/:username/movies/:movieID', passport.authenticate('jwt', {session: false}), function (req, res) {
     Users.findOneAndUpdate({ Username: req.params.username }, {
         $push: { FavoriteMovies: req.params.movieID }
     },
@@ -93,7 +96,7 @@ app.post('/users/:username/movies/:movieID', function (req, res) {
 });
 
 // PUT
-app.put('/users/:username', function (req, res) { // "allowing users to update their user info"
+app.put('/users/:username', passport.authenticate('jwt', {session: false}), function (req, res) { // "allowing users to update their user info"
     Users.findOneAndUpdate({ Username: req.params.username }, {
         $set:
         {
@@ -115,7 +118,7 @@ app.put('/users/:username', function (req, res) { // "allowing users to update t
 });
 
 // DELETE
-app.delete('/users/:username', function (req, res) {
+app.delete('/users/:username', passport.authenticate('jwt', {session: false}), function (req, res) {
     Users.findOneAndRemove({ Username: req.params.username })
         .then(function (user) {
             if (!user) {
@@ -129,7 +132,7 @@ app.delete('/users/:username', function (req, res) {
             res.status(500).send('Error: ' + err);
         });
 });
-app.delete('/users/:username/movies/:movieId', function (req, res) {
+app.delete('/users/:username/movies/:movieId', passport.authenticate('jwt', {session: false}), function (req, res) {
     Users.findOneAndUpdate({ Username: req.params.username }, {
         $pull: { FavoriteMovies: req.params.movieId }
     },
