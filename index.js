@@ -10,11 +10,13 @@ const cors = require('cors');
 const { check, validationResult } = require('express-validator');
 require('./passport');
 
+let mongoPassword = process.env.NODE_ENV === 'production' ? process.env.MONGO_PASSWORD : require('./secrets').MongoPassword;
 
 const Movies = Models.Movie;
 const Users = Models.User;
 
-mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true });
+// mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true });
+mongoose.connect(`mongodb+srv://movieApiDBAdmin:${mongoPassword}@cluster0-5sm08.mongodb.net/movieApiDB?retryWrites=true&w=majority`, { useNewUrlParser: true });
 
 app.use(bodyParser.json());
 app.use(morgan('common'));
