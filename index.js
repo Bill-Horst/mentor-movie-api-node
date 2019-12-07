@@ -2,19 +2,24 @@ const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const auth = require('./auth')(app);
 const mongoose = require('mongoose');
 const Models = require('./models.js');
 const passport = require('passport');
+const cors = require('cors');
+const { check, validationResult } = require('express-validator');
 require('./passport');
+
 
 const Movies = Models.Movie;
 const Users = Models.User;
 
-app.use(morgan('common'));
-app.use(bodyParser.json());
-var auth = require('./auth')(app);
-
 mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true });
+
+app.use(bodyParser.json());
+app.use(morgan('common'));
+
+app.use(cors());
 
 app.use(express.static('public')); // serve files located in 'public' folder
 
@@ -22,7 +27,7 @@ app.use(express.static('public')); // serve files located in 'public' folder
 app.get('/', function (req, res) {
     res.send('Welcome to the Movie API!')
 });
-app.get('/movies', passport.authenticate('jwt', {session: false}), function (req, res) {
+app.get('/movies', function (req, res) {
     Movies.find()
         .then(movies => res.json(movies))
         .catch(function (error) {
@@ -30,7 +35,7 @@ app.get('/movies', passport.authenticate('jwt', {session: false}), function (req
             res.status(500).send('Error: ' + error);
         });;
 });
-app.get('/movies/:title', passport.authenticate('jwt', {session: false}), function (req, res) {
+app.get('/movies/:title', passport.authenticate('jwt', { session: false }), function (req, res) {
     Movies.findOne({ Title: req.params.title })
         .then(movie => res.json(movie))
         .catch(function (error) {
@@ -38,7 +43,7 @@ app.get('/movies/:title', passport.authenticate('jwt', {session: false}), functi
             res.status(500).send('Error: ' + error);
         });;
 });
-app.get('/genre/:genre', passport.authenticate('jwt', {session: false}), function (req, res) {
+app.get('/genre/:genre', passport.authenticate('jwt', { session: false }), function (req, res) {
     Movies.findOne({ 'Genre.Name': req.params.genre })
         .then(movie => res.json(movie.Genre))
         .catch(function (error) {
@@ -46,7 +51,7 @@ app.get('/genre/:genre', passport.authenticate('jwt', {session: false}), functio
             res.status(500).send('Error: ' + error);
         });
 });
-app.get('/directors/:name', passport.authenticate('jwt', {session: false}), function (req, res) {
+app.get('/directors/:name', passport.authenticate('jwt', { session: false }), function (req, res) {
     Movies.findOne({ 'Director.Name': req.params.name })
         .then(movie => res.json(movie.Director))
         .catch(function (error) {
@@ -57,6 +62,18 @@ app.get('/directors/:name', passport.authenticate('jwt', {session: false}), func
 
 // POST
 app.post('/users', function (req, res) { // this is for "allowing users to register"
+    // validation
+    [check('Username', 'Username is required').isLength({ min: 5 }),
+    check('Username', 'Username contains non alphanumeric characters - not allowed.').isAlphanumeric(),
+    check('Password', 'Password is required').not().isEmpty(),
+    check('Email', 'Email does not appear to be valid').isEmail()], (req, res) => {
+        var errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ errors: errors.array() });
+        }
+    }
+    // end validation
+    var hashedPassword = Users.hashPassword(req.body.Password);
     Users.findOne({ Username: req.body.Username })
         .then(function (user) {
             if (user) {
@@ -65,7 +82,7 @@ app.post('/users', function (req, res) { // this is for "allowing users to regis
                 Users
                     .create({
                         Username: req.body.Username,
-                        Password: req.body.Password,
+                        Password: hashedPassword,
                         Email: req.body.Email,
                         Birthdate: req.body.Birthdate
                     })
@@ -80,7 +97,7 @@ app.post('/users', function (req, res) { // this is for "allowing users to regis
             res.status(500).send('Error: ' + error);
         });
 });
-app.post('/users/:username/movies/:movieID', passport.authenticate('jwt', {session: false}), function (req, res) {
+app.post('/users/:username/movies/:movieID', passport.authenticate('jwt', { session: false }), function (req, res) {
     Users.findOneAndUpdate({ Username: req.params.username }, {
         $push: { FavoriteMovies: req.params.movieID }
     },
@@ -96,7 +113,7 @@ app.post('/users/:username/movies/:movieID', passport.authenticate('jwt', {sessi
 });
 
 // PUT
-app.put('/users/:username', passport.authenticate('jwt', {session: false}), function (req, res) { // "allowing users to update their user info"
+app.put('/users/:username', passport.authenticate('jwt', { session: false }), function (req, res) { // "allowing users to update their user info"
     Users.findOneAndUpdate({ Username: req.params.username }, {
         $set:
         {
@@ -118,7 +135,7 @@ app.put('/users/:username', passport.authenticate('jwt', {session: false}), func
 });
 
 // DELETE
-app.delete('/users/:username', passport.authenticate('jwt', {session: false}), function (req, res) {
+app.delete('/users/:username', passport.authenticate('jwt', { session: false }), function (req, res) {
     Users.findOneAndRemove({ Username: req.params.username })
         .then(function (user) {
             if (!user) {
@@ -132,7 +149,7 @@ app.delete('/users/:username', passport.authenticate('jwt', {session: false}), f
             res.status(500).send('Error: ' + err);
         });
 });
-app.delete('/users/:username/movies/:movieId', passport.authenticate('jwt', {session: false}), function (req, res) {
+app.delete('/users/:username/movies/:movieId', passport.authenticate('jwt', { session: false }), function (req, res) {
     Users.findOneAndUpdate({ Username: req.params.username }, {
         $pull: { FavoriteMovies: req.params.movieId }
     },
@@ -154,7 +171,13 @@ app.use(function (err, req, res, next) { // this only runs when there's an error
     res.status(500).send('Something broke!');
 });
 
-// LISTEN FOR REQUESTS
-app.listen(8080, () => {
-    console.log('Listening on 8080.');
-}); 
+// LOCAL:
+// app.listen(8080, () => {
+//     console.log('Listening on 8080.');
+// }); 
+
+// HEROKU:
+const port = process.env.PORT || 3000;
+app.listen(port, "0.0.0.0", function () {
+    console.log("Listening on Port 3000");
+});
