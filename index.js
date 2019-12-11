@@ -2,11 +2,12 @@ const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
-const auth = require('./auth')(app);
 const mongoose = require('mongoose');
 const Models = require('./models.js');
 const passport = require('passport');
 const cors = require('cors');
+app.use(cors());
+const auth = require('./auth')(app); // make sure auth here comes after the app.use(cors()) to prevent cors errors on login
 const { check, validationResult } = require('express-validator');
 require('./passport');
 
@@ -20,8 +21,6 @@ mongoose.connect(`mongodb+srv://movieApiDBAdmin:${mongoPassword}@cluster0-5sm08.
 
 app.use(bodyParser.json());
 app.use(morgan('common'));
-
-app.use(cors());
 
 app.use(express.static('public')); // serve files located in 'public' folder
 
