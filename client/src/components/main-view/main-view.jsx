@@ -9,7 +9,7 @@ import { RegistrationView } from '../registration-view/registration-view';
 export class MainView extends React.Component {
     constructor() {
         super();
-        this.state = {
+        this.state = { // sets up state properties
             movies: null,
             selectedMovie: null,
             user: null
@@ -17,8 +17,31 @@ export class MainView extends React.Component {
     }
 
     componentDidMount() {
-        axios.get('https://mentor-movie-api-node.herokuapp.com/movies')
+        let accessToken = localStorage.getItem('token');
+        if (accessToken !== null) {
+            this.setState({
+                user: localStorage.getItem('user')
+            });
+            this.getMovies(accessToken);
+        }
+    }
+
+    onLoggedIn(authData) {
+        this.setState({
+            user: authData.user.Username
+        });
+
+        localStorage.setItem('token', authData.token);
+        localStorage.setItem('user', authData.user.Username);
+        this.getMovies(authData.token);
+    }
+
+    getMovies(token) {
+        axios.get('https://mentor-movie-api-node.herokuapp.com/movies', {
+            headers: { Authorization: `Bearer ${token}` }
+        })
             .then(response => {
+                // Assign the result to the state
                 this.setState({
                     movies: response.data
                 });
@@ -26,12 +49,6 @@ export class MainView extends React.Component {
             .catch(function (error) {
                 console.log(error);
             });
-    }
-
-    onLoggedIn(user) {
-        this.setState({
-            user
-        });
     }
 
     onMovieClick(movie) {
@@ -63,7 +80,7 @@ export class MainView extends React.Component {
                         <MovieCard
                             key={movie._id}
                             movie={movie}
-                            movieClicked={movie => this.onMovieClick(movie)} />
+                            movieClicked={thePassedMovie => this.onMovieClick(thePassedMovie)} />
                     ))
                 }
             </div>
