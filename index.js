@@ -28,7 +28,7 @@ app.use(express.static('public')); // serve files located in 'public' folder
 app.get('/', function (req, res) {
     res.send('Welcome to the Movie API!')
 });
-app.get('/movies', function (req, res) {
+app.get('/movies', passport.authenticate('jwt', { session: false }), function (req, res) {
     Movies.find()
         .then(movies => res.json(movies))
         .catch(function (error) {
