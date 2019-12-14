@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
@@ -8,11 +9,22 @@ export function RegistrationView(props) {
     const [email, setEmail] = useState('');
     const [birthdate, setBirthdate] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleRegister = (e) => {
         e.preventDefault();
-        console.log(username, password);
-        // Send a request to the server for authentication then call props.onLoggedIn(username)
-        props.onLoggedIn(username);
+        axios.post('https://mentor-movie-api-node.herokuapp.com/users', {
+            Username: username,
+            Password: password,
+            Email: email,
+            Birthdate: birthdate
+          })
+          .then(response => {
+            // const data = response.data;
+            // console.log(data);
+            window.open('/', '_self');
+          })
+          .catch(e => {
+            console.log('error registering the user')
+          });
     };
 
     return (
@@ -33,7 +45,7 @@ export function RegistrationView(props) {
                 <Form.Label>Birthdate</Form.Label>
                 <Form.Control type="date" value={birthdate} onChange={e => setBirthdate(e.target.value)} />
             </Form.Group>
-            <Button type="button" onClick={handleSubmit}>Submit</Button>
+            <Button type="button" onClick={handleRegister}>Submit</Button>
         </Form>
     );
 }
