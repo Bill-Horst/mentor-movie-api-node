@@ -60,6 +60,14 @@ app.get('/directors/:name', passport.authenticate('jwt', { session: false }), fu
             res.status(500).send('Error: ' + error);
         });
 });
+app.get('/users/:username', passport.authenticate('jwt', { session: false }), function (req, res) {
+    Users.findOne({ Username: req.params.username })
+        .then(user => res.json(user))
+        .catch(function (error) {
+            console.error(error);
+            res.status(500).send('Error: ' + error);
+        });;
+});
 
 // POST
 app.post('/users', function (req, res) { // this is for "allowing users to register"
