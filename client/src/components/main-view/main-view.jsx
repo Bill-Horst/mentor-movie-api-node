@@ -1,10 +1,13 @@
 import React from 'react';
 import axios from 'axios';
+import { connect } from 'react-redux';
 import Button from 'react-bootstrap/Button';
 import { Link } from "react-router-dom";
 
 import { BrowserRouter as Router, Route } from "react-router-dom";
 
+import { setMovies } from '../../actions/actions';
+import MoviesList from '../movies-list/movies-list';
 import { MovieCard } from '../movie-card/movie-card';
 import { MovieView } from '../movie-view/movie-view';
 import { LoginView } from '../login-view/login-view';
@@ -17,7 +20,7 @@ export class MainView extends React.Component {
     constructor() {
         super();
         this.state = { // sets up state properties
-            movies: [],
+            // movies: [],
             user: null
         };
     }
@@ -57,9 +60,10 @@ export class MainView extends React.Component {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(response => {
-                this.setState({
-                    movies: response.data
-                });
+                this.props.setMovies(response.data);
+                // this.setState({
+                //     movies: response.data
+                // });
                 // console.log(this.state)
             })
             .catch(function (error) {
@@ -83,7 +87,8 @@ export class MainView extends React.Component {
     }
 
     render() {
-        const { movies, user } = this.state;
+        const { movies } = this.props;
+        const { user } = this.state;
 
         if (!movies) return <div className="main-view"></div>;
 
@@ -92,7 +97,7 @@ export class MainView extends React.Component {
                 <div>
                     <Route exact path="/" render={() => {
                         if (!user) return <LoginView onLoggedIn={user => this.onLoggedIn(user)} />;
-                        return movies.map(m => <MovieCard key={m._id} movie={m} />)
+                        return <MoviesList movies={movies}/>;
                     }} />
                     <Route path="/register" render={() => <RegistrationView />} />
                     <Route path="/movies/:movieId" render={({ match }) => <MovieView movie={movies.find(m => m._id === match.params.movieId)} onAddToFavoritesClick={m => this.addToFavorites(m)} />} />
@@ -113,3 +118,9 @@ export class MainView extends React.Component {
         );
     }
 }
+
+let mapStateToProps = state => {
+    return { movies: state.movies }
+}
+
+export default connect(mapStateToProps, { setMovies } )(MainView);
